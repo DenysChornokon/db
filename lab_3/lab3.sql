@@ -1,10 +1,7 @@
 -- Active: 1711023372565@@127.0.0.1@5432@library
-
-
 -- Процедури
 
 -- Процедура для додавання нової книги
-
 CREATE OR REPLACE PROCEDURE add_book(
     p_title VARCHAR,
     p_author VARCHAR,
@@ -20,8 +17,12 @@ BEGIN
 END;
 $$;
 
--- Процедура для оновлення інформації про читача
+-- Перевірка процедури add_book
+CALL add_book ( 'New Book', 'New Author', 'New Genre', 2024, 321 );
 
+SELECT * FROM books WHERE title = 'New Book';
+
+-- Процедура для оновлення інформації про читача
 CREATE OR REPLACE PROCEDURE update_reader(
     p_reader_id INT,
     p_name VARCHAR,
@@ -37,8 +38,17 @@ BEGIN
 END;
 $$;
 
--- Процедура для видалення позики
+-- Перевірка процедури update_reader
+CALL update_reader (
+    3,
+    'John Doe Updated',
+    '456 New Address',
+    '987-654-3210'
+);
 
+SELECT * FROM readers WHERE id = 3;
+
+-- Процедура для видалення позики
 CREATE OR REPLACE PROCEDURE delete_loan(
     p_loan_id INT
 )
@@ -49,11 +59,14 @@ BEGIN
 END;
 $$;
 
+-- Перевірка процедури delete_loan
+CALL delete_loan (3);
+
+SELECT * FROM loans WHERE id = 3;
 
 -- Функції
 
--- Функція для пошуку читачів за ім'ям 
-
+-- Функція для пошуку читачів за ім'ям
 CREATE OR REPLACE FUNCTION find_readers_by_name(p_name VARCHAR)
 RETURNS TABLE (
     id INT,
@@ -63,14 +76,16 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT id, name, address, phone_number
+    SELECT readers.id, readers.name, readers.address, readers.phone_number
     FROM readers
-    WHERE name ILIKE '%' || p_name || '%';
+    WHERE readers.name ILIKE '%' || p_name || '%';
 END;
 $$ LANGUAGE plpgsql;
 
--- Функція для пошуку книг за автором
+-- Перевірка функції find_readers_by_name
+SELECT * FROM find_readers_by_name ('Петро Петров');
 
+-- Функція для пошуку книг за автором
 CREATE OR REPLACE FUNCTION find_books_by_author(p_author VARCHAR)
 RETURNS TABLE (
     id INT,
@@ -82,14 +97,16 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT id, title, author, genre, publication_year, pages
+    SELECT books.id, books.title, books.author, books.genre, books.publication_year, books.pages
     FROM books
-    WHERE author ILIKE '%' || p_author || '%';
+    WHERE books.author ILIKE '%' || p_author || '%';
 END;
 $$ LANGUAGE plpgsql;
 
--- Функція для підрахунку кількості книг у певному жанрі
+-- Перевірка функції find_books_by_author
+SELECT * FROM find_books_by_author ('Тарас Шевченко');
 
+-- Функція для підрахунку кількості книг у певному жанрі
 CREATE OR REPLACE FUNCTION count_books_by_genre(p_genre VARCHAR)
 RETURNS INT AS $$
 DECLARE
@@ -103,11 +120,12 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Перевірка функції count_books_by_genre
+SELECT count_books_by_genre ('поезія');
 
 -- Тригери
 
 -- Тригер для оновлення кількості доступних книг після додавання нової позики
-
 CREATE OR REPLACE FUNCTION update_book_count_on_loan()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -119,13 +137,19 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-
 CREATE TRIGGER trigger_update_book_count_on_loan
 AFTER INSERT ON loans FOR EACH ROW
 EXECUTE FUNCTION update_book_count_on_loan ();
 
--- Тригер для перевірки доступності книги перед додаванням нової позики
+-- Перевірка тригера update_book_count_on_loan
+-- Вставляємо нову позику і перевіряємо кількість доступних копій книги
+INSERT INTO
+    loans (book_id, reader_id, loan_date)
+VALUES (1, 1, CURRENT_DATE);
 
+SELECT available_copies FROM books WHERE id = 1;
+
+-- Тригер для перевірки доступності книги перед додаванням нової позики
 CREATE OR REPLACE FUNCTION check_book_availability()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -137,12 +161,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-
 CREATE TRIGGER trigger_check_book_availability BEFORE INSERT ON loans FOR EACH ROW
 EXECUTE FUNCTION check_book_availability ();
 
--- Тригер для автоматичного оновлення поля return_date до поточної дати при видаленні позики, якщо воно ще не встановлено
 
+-- Тригер для автоматичного оновлення поля return_date до поточної дати при видаленні позики, якщо воно ще не встановлено
 CREATE OR REPLACE FUNCTION set_return_date_on_delete()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -156,15 +179,18 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-
 CREATE TRIGGER trigger_set_return_date_on_delete BEFORE DELETE ON loans FOR EACH ROW
 EXECUTE FUNCTION set_return_date_on_delete ();
 
+-- Перевірка тригера set_return_date_on_delete
+-- Видаляємо позику і перевіряємо, чи оновилося поле return_date
+DELETE FROM loans WHERE id = 3;
 
---Транзакції
+SELECT return_date FROM loans WHERE id = 2;
+
+-- Транзакції
 
 -- Транзакція для додавання нової книги разом із автором і жанром
-
 BEGIN;
 
 -- Додавання нового автора, якщо він ще не існує
@@ -204,9 +230,10 @@ VALUES (
 
 COMMIT;
 
+-- Перевірка транзакції для додавання нової книги
+SELECT * FROM books WHERE title = 'Нова Книга';
 
 -- Транзакція для оновлення інформації про книгу та відповідну позику
-
 BEGIN;
 
 -- Оновлення інформації про книгу
@@ -227,9 +254,12 @@ WHERE
 
 COMMIT;
 
+-- Перевірка транзакції для оновлення інформації про книгу та відповідну позику
+SELECT * FROM books WHERE id = 1;
+
+SELECT * FROM loans WHERE book_id = 1;
 
 -- Транзакція для видалення читача та всіх його позик
-
 BEGIN;
 
 -- Видалення всіх позик читача
@@ -239,3 +269,8 @@ DELETE FROM loans WHERE reader_id = 1;
 DELETE FROM readers WHERE id = 1;
 
 COMMIT;
+
+-- Перевірка транзакції для видалення читача та всіх його позик
+SELECT * FROM readers WHERE id = 1;
+
+SELECT * FROM loans WHERE reader_id = 1;
