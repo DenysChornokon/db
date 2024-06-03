@@ -5,17 +5,17 @@ const Loan = require("../models/Loan");
 // Helper function to format dates
 const formatDate = (date) => {
   if (!date) return null;
-  return date.toISOString().split("T")[0];
-};
+  return date.toISOString().split('T')[0];
+}
 
 // Get all loans
 router.get("/", async (req, res) => {
   try {
     const loans = await Loan.find().populate("book_id").populate("reader_id");
-    const formattedLoans = loans.map((loan) => ({
+    const formattedLoans = loans.map(loan => ({
       _id: loan._id,
-      book: loan.book_id.title, // Using populated book title
-      reader: loan.reader_id.name, // Using populated reader name
+      book: loan.book_id.title,  // Using populated book title
+      reader: loan.reader_id.name,  // Using populated reader name
       loan_date: formatDate(loan.loan_date),
       return_date: formatDate(loan.return_date),
     }));
@@ -31,14 +31,12 @@ router.post("/", async (req, res) => {
     book_id: req.body.book_id,
     reader_id: req.body.reader_id,
     loan_date: req.body.loan_date,
-    return_date: req.body.return_date,
+    return_date: req.body.return_date
   });
 
   try {
     const newLoan = await loan.save();
-    const populatedLoan = await Loan.findById(newLoan._id)
-      .populate("book_id")
-      .populate("reader_id");
+    const populatedLoan = await Loan.findById(newLoan._id).populate("book_id").populate("reader_id");
     res.status(201).json({
       _id: populatedLoan._id,
       book: populatedLoan.book_id.title,
@@ -79,9 +77,7 @@ router.patch("/:id", getLoan, async (req, res) => {
 
   try {
     const updatedLoan = await res.loan.save();
-    const populatedLoan = await Loan.findById(updatedLoan._id)
-      .populate("book_id")
-      .populate("reader_id");
+    const populatedLoan = await Loan.findById(updatedLoan._id).populate("book_id").populate("reader_id");
     res.json({
       _id: populatedLoan._id,
       book: populatedLoan.book_id.title,
@@ -107,9 +103,7 @@ router.delete("/:id", getLoan, async (req, res) => {
 async function getLoan(req, res, next) {
   let loan;
   try {
-    loan = await Loan.findById(req.params.id)
-      .populate("book_id")
-      .populate("reader_id");
+    loan = await Loan.findById(req.params.id).populate("book_id").populate("reader_id");
     if (loan == null) {
       return res.status(404).json({ message: "Cannot find loan" });
     }

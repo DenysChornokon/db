@@ -5,20 +5,19 @@ const cors = require("cors");
 
 const app = express();
 
-// Middleware
+
 app.use(bodyParser.json());
 app.use(cors());
 
-// DB Config
 const db = require("./config").url;
 
-// Connect to MongoDB
+
 mongoose
   .connect(db, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.log(err));
 
-// Define Routes
+
 app.use("/api/readers", require("./routes/readers"));
 app.use("/api/books", require("./routes/books"));
 app.use("/api/loans", require("./routes/loans"));
