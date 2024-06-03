@@ -17,8 +17,7 @@ const ReaderList = () => {
   }, []);
 
   return (
-    <div>
-      <h2>Readers</h2>
+    <div className="items-container">
       <ul>
         {readers.map((reader) => (
           <li key={reader._id}>

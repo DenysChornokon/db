@@ -17,8 +17,7 @@ const BookList = () => {
   }, []);
 
   return (
-    <div>
-      <h2>Books</h2>
+    <div className="items-container">
       <ul>
         {books.map((book) => (
           <li key={book._id}>

@@ -4,25 +4,28 @@ import Home from "./pages/Home";
 import Books from "./pages/Books";
 import Readers from "./pages/Readers";
 import Loans from "./pages/Loans";
+import './App.css'
 
 function App() {
   return (
     <Router>
-      <div>
+      <div className="container">
         <nav>
           <ul>
-            <li>
-              <Link to="/">Home</Link>
-            </li>
-            <li>
-              <Link to="/books">Books</Link>
-            </li>
-            <li>
-              <Link to="/readers">Readers</Link>
-            </li>
-            <li>
-              <Link to="/loans">Loans</Link>
-            </li>
+            <div className="nav-links">
+              <li className="home">
+                <Link to="/">Home</Link>
+              </li>
+              <li>
+                <Link to="/books">Books</Link>
+              </li>
+              <li>
+                <Link to="/readers">Readers</Link>
+              </li>
+              <li>
+                <Link to="/loans">Loans</Link>
+              </li>
+            </div>
           </ul>
         </nav>
         <Routes>
